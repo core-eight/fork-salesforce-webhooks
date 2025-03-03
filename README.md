@@ -276,3 +276,32 @@ package itself does not keep track of those resources after the call to
 
 For deletion, the same steps described above is performed in _reverse_ order,
 except that instead of creating those resources, they are removed.
+
+## Troubleshooting
+
+### "Cannot use 'import.meta' outside a module" Error
+
+If you encounter this error when using this package:
+
+```
+SyntaxError: Cannot use 'import.meta' outside a module
+```
+
+You may need to modify the package to work with your environment:
+
+1. Change the `package.json` file in the `node_modules/salesforce-webhooks` directory:
+   - Change `"type": "module"` to `"type": "commonjs"`
+
+2. Update the `.babelrc` file:
+   - Change `"modules": false` to `"modules": "commonjs"`
+
+3. Modify the webpack configuration:
+   - Change `library: { type: "module" }` to `library: { type: "commonjs2" }`
+   - Remove the `outputModule: true` from experiments
+
+4. Rebuild the package using:
+   ```
+   npm run build
+   ```
+
+This should resolve the issue with `import.meta` usage.

@@ -1,9 +1,5 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { CleanWebpackPlugin } from 'clean-webpack-plugin';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const path = require('path');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const baseConfig = {
   target: "node",
@@ -11,13 +7,12 @@ const baseConfig = {
   devtool: "source-map",
   experiments: {
     topLevelAwait: true,
-    outputModule: true
   },
   output: {
     filename: "index.js",
     path: path.resolve(__dirname, "dist"),
     library: {
-      type: "module"
+      type: "commonjs2"
     },
     clean: true
   },
@@ -44,7 +39,7 @@ const baseConfig = {
                 targets: {
                   node: 'current',
                 },
-                modules: false
+                modules: 'commonjs'
               }]
             ],
             plugins: ['@babel/plugin-transform-runtime']
@@ -74,7 +69,7 @@ const developmentConfig = {
   },
 };
 
-export default (_, argv) => {
+module.exports = (_, argv) => {
   const { mode = "production" } = argv;
 
   if (mode === "production") {
