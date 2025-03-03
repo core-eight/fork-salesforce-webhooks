@@ -1,9 +1,13 @@
-import { getRandomName } from "./common";
+import { getRandomName } from "./common.js";
+import webhookCalloutTemplate from "../../resources/templates/apex/src/WebhookCallout.cls.handlebars";
+import httpCalloutMockTemplate from "../../resources/templates/apex/test/HttpCalloutMock.cls.handlebars";
+import sObjectFactoryTemplate from "../../resources/templates/apex/test/SObjectFactory.cls.handlebars";
+import deployApexCodeTemplate from "../../resources/templates/soap/apex/DeployApexCode.xml.handlebars";
+import deleteApexCodeTemplate from "../../resources/templates/soap/apex/DeleteApexCode.xml.handlebars";
 
 export const getWebhookCallout = (secretToken) => {
-  const template = require("../../resources/templates/apex/src/WebhookCallout.cls.handlebars");
   const webhookCalloutName = getRandomName("Callout");
-  const body = template({
+  const body = webhookCalloutTemplate({
     webhookCalloutName,
     secretToken,
   });
@@ -14,9 +18,8 @@ export const getWebhookCallout = (secretToken) => {
 };
 
 export const getWebhookCalloutMock = () => {
-  const template = require("../../resources/templates/apex/test/HttpCalloutMock.cls.handlebars");
   const webhookCalloutMockName = getRandomName("CalloutMock");
-  const body = template({
+  const body = httpCalloutMockTemplate({
     webhookCalloutMockName,
   });
   return {
@@ -26,9 +29,8 @@ export const getWebhookCalloutMock = () => {
 };
 
 export const getSObjectFactory = () => {
-  const template = require("../../resources/templates/apex/test/SObjectFactory.cls.handlebars");
   const name = getRandomName("SObjectFactory");
-  const body = template({
+  const body = sObjectFactoryTemplate({
     name,
   });
   return {
@@ -77,10 +79,9 @@ export const getWebhookTriggerTest = (
 };
 
 export const getDeployApexCodeBody = (authToken, classes, triggers) => {
-  const template = require("../../resources/templates/soap/apex/DeployApexCode.xml.handlebars");
   const classBodies = classes.map((c) => c.body);
   const triggerBodies = triggers.map((t) => t.body);
-  const body = template({
+  const body = deployApexCodeTemplate({
     authToken,
     classBodies,
     triggerBodies,
@@ -91,8 +92,7 @@ export const getDeployApexCodeBody = (authToken, classes, triggers) => {
 };
 
 export const getDeleteApexCodeBody = (authToken, classNames, triggerNames) => {
-  const template = require("../../resources/templates/soap/apex/DeleteApexCode.xml.handlebars");
-  const body = template({
+  const body = deleteApexCodeTemplate({
     authToken,
     classNames,
     triggerNames,

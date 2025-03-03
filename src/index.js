@@ -1,1 +1,1 @@
-export { SalesforceClient } from "./client";
+export { SalesforceClient } from "./client.js";

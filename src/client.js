@@ -10,12 +10,12 @@ import {
   getWebhookCalloutMock,
   getWebhookTrigger,
   getWebhookTriggerTest,
-} from "./utils/apex";
-import { wasSuccessfulSoapRequest } from "./utils/common";
+} from "./utils/apex.js";
+import { wasSuccessfulSoapRequest } from "./utils/common.js";
 import {
   getCreateRemoteSiteBody,
   getDeleteRemoteSiteBody,
-} from "./utils/metadata";
+} from "./utils/metadata.js";
 // import { writeFileSync } from "node:fs";
 
 export class SalesforceClient {
