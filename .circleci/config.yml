@@ -1,0 +1,226 @@
+version: 2.1
+
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: cimg/node:lts
+
+jobs:
+  verify_code:
+    <<: *defaults
+
+    parameters:
+      build_mode:
+        type: string
+        description: |-
+          The build mode to use when bundling the final package
+        enum:
+          - debug
+          - release
+        default: release
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "yarn.lock" }}
+
+      - run:
+          name: Node Dependencies
+          command: yarn install --frozen-lockfile
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "yarn.lock" }}
+
+      - run:
+          name: Build Package
+          command: yarn build:<< parameters.build_mode >>
+
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - dist
+            - node_modules
+
+      - run:
+          name: Lint Code
+          command: yarn lint
+
+      - run:
+          name: Unit Tests
+          command: yarn test
+
+      - run:
+          name: Coverage Checks
+          command: yarn test:coverage
+
+      - store_artifacts:
+          path: coverage
+
+  integration_tests:
+    <<: *defaults
+
+    environment:
+      KEYS_DIR: "/tmp/keys"
+
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/repo
+
+      - run:
+          name: Salesforce CLI
+          command: |
+            yarn global add @salesforce/cli
+
+      - run:
+          name: Other Dependencies
+          command: |
+            wget -q -O jq 'https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64'
+            chmod +x jq
+            sudo mv jq /bin
+
+      - run:
+          name: Create Cert and Key Files
+          command: |
+            mkdir -p ${KEYS_DIR}
+            echo ${SERVER_CRT_BASE64} | base64 -d > ${KEYS_DIR}/server.crt
+            echo ${SERVER_KEY_ENC_BASE64} | base64 -d > ${KEYS_DIR}/server.key.enc
+            openssl enc \
+              -nosalt \
+              -aes-256-cbc \
+              -d \
+              -in ${KEYS_DIR}/server.key.enc \
+              -out ${KEYS_DIR}/server.key \
+              -base64 \
+              -K ${DECRYPTION_KEY} \
+              -iv ${DECRYPTION_IV}
+
+      - run:
+          name: Setup Org
+          command: |
+            sfdx force:auth:jwt:grant \
+              --client-id ${HUB_CONSUMER_KEY} \
+              --jwt-key-file ${KEYS_DIR}/server.key \
+              --username ${HUB_SFDC_USER} \
+              --set-default-dev-hub \
+              --alias hub \
+              --set-default
+
+      - run:
+          name: Integration Tests
+          working_directory: test/integ
+          no_output_timeout: 270m
+          environment:
+            SALESFORCE_API_VERSION: "50.0"
+          command: |
+            sfdx config:set --global defaultusername=${HUB_SFDC_USER}
+            ./deploy_and_test_apex.sh
+
+      - run:
+          name: Generate Test Report
+          working_directory: test/integ
+          environment:
+            TEST_REPORTS_DIR_BASE: test_reports
+          command: |
+            ./generate_test_report.sh
+
+      - store_test_results:
+          path: test/integ/test_reports
+
+  bump_version:
+    <<: *defaults
+
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/repo
+
+      - add_ssh_keys:
+          fingerprints:
+            - "eb:79:6a:d5:94:92:0f:75:b8:29:75:8c:56:bd:4a:f2"
+            - "c1:97:c0:95:c0:48:3a:6d:b3:2f:29:3a:8d:5b:ff:fa"
+
+      - run:
+          name: Set up Git
+          command: |
+            git config user.email "${GIT_USER_EMAIL}"
+            git config user.name "${GIT_USER_NAME}"
+
+      - run:
+          name: Update Package Version
+          command: |
+            yarn version \
+              --message "[skip ci] Update package version: %s" \
+              --patch
+            git push --tags origin master
+
+  publish:
+    <<: *defaults
+
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/repo
+
+      - run:
+          name: Publish NPM Package
+          command: |
+            echo "//registry.npmjs.org/:_authToken=$npm_TOKEN" > ~/repo/.npmrc
+            yarn publish
+
+non_master: &non_master
+  filters:
+    branches:
+      ignore: master
+
+master_only: &master_only
+  filters:
+    branches:
+      only: master
+
+tagged_only: &tagged_only
+  filters:
+    tags:
+      only: /^v\d+\.\d+\.\d+$/
+    branches:
+      ignore: /.*/
+
+workflows:
+  development:
+    jobs:
+      - verify_code:
+          name: verify_code_dev
+          build_mode: debug
+          <<: *non_master
+
+  production:
+    jobs:
+      - verify_code:
+          name: verify_code_production
+          build_mode: debug
+          <<: *master_only
+      - integration_tests:
+          name: integration_tests_production
+          requires:
+            - verify_code_production
+      - bump_version:
+          requires:
+            - integration_tests_production
+
+  release:
+    jobs:
+      - verify_code:
+          name: verify_code_release
+          <<: *tagged_only
+      - publish:
+          name: publish_release
+          requires:
+            - verify_code_release
+          <<: *tagged_only
