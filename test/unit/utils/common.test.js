@@ -80,3 +80,23 @@ describe("Soap request success detector", function () {
     expect(result).to.be.true;
   });
 });
+
+describe("XML escaping", function () {
+  it("should escape XML special characters", function () {
+    const unescaped = "Class with <special> & \"characters\" and 'apostrophes'";
+    const escaped = common.escapeXml(unescaped);
+    expect(escaped).to.equal("Class with &lt;special&gt; &amp; &quot;characters&quot; and &apos;apostrophes&apos;");
+  });
+
+  it("should handle non-string inputs gracefully", function () {
+    const number = 42;
+    const result = common.escapeXml(number);
+    expect(result).to.equal(number);
+  });
+
+  it("should not modify strings without special characters", function () {
+    const normal = "Normal string without special characters";
+    const result = common.escapeXml(normal);
+    expect(result).to.equal(normal);
+  });
+});

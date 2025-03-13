@@ -1,0 +1,31 @@
+<env:Envelope
+  xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  <env:Header>
+    <urn:SessionHeader xmlns:urn="http://soap.sforce.com/2006/08/apex">
+      <urn:sessionId>auth-token-value</urn:sessionId>
+    </urn:SessionHeader>
+  </env:Header>
+  <env:Body>
+    <compileAndTest xmlns="http://soap.sforce.com/2006/08/apex">
+      <CompileAndTestRequest>
+          <classes>public class CDATATestClass {
+        // The following contains CDATA-like content that could break XML
+        String cdataExample &#x3D; &amp;apos;&amp;lt;![CDATA[ This is CDATA content with nested &amp;lt;tags&amp;gt; &amp;amp; special chars ]]&amp;gt;&amp;apos;;
+        
+        // Processing instruction-like content
+        String piExample &#x3D; &amp;apos;&amp;lt;?xml version&#x3D;&amp;quot;1.0&amp;quot; encoding&#x3D;&amp;quot;UTF-8&amp;quot;?&amp;gt;&amp;apos;;
+        
+        // Comment-like content
+        String commentExample &#x3D; &amp;apos;&amp;lt;!-- XML comment that could break parsing --&amp;gt;&amp;apos;;
+      }</classes>
+
+
+        <runTestsRequest>
+          <allTests>true</allTests>
+        </runTestsRequest>
+      </CompileAndTestRequest>
+    </compileAndTest>
+  </env:Body>
+</env:Envelope>

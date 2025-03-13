@@ -1,0 +1,33 @@
+<env:Envelope
+  xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  <env:Header>
+    <urn:SessionHeader xmlns:urn="http://soap.sforce.com/2006/08/apex">
+      <urn:sessionId>auth-token-value</urn:sessionId>
+    </urn:SessionHeader>
+  </env:Header>
+  <env:Body>
+    <compileAndTest xmlns="http://soap.sforce.com/2006/08/apex">
+      <CompileAndTestRequest>
+          <classes>public class TestClass {
+        // The following line has XML special characters &amp;lt; &amp;gt; &amp;amp; &amp;apos; &amp;quot;
+        if (x &amp;lt; 10 &amp;amp;&amp;amp; y &amp;gt; 20) {
+            String s &#x3D; &amp;apos;apostrophe &amp;amp; ampersand &amp;quot; quotes&amp;apos;;
+        }
+      }</classes>
+
+          <triggers>trigger TestTrigger on Account (before insert) {
+        // The following line has XML special characters &amp;lt; &amp;gt; &amp;amp; &amp;apos; &amp;quot;
+        if (Trigger.new[0].Name !&#x3D; null &amp;amp;&amp;amp; Trigger.new[0].Name.length() &amp;gt; 0) {
+            String s &#x3D; &amp;apos;some string with &amp;lt;xml&amp;gt; &amp;amp; special &amp;quot;characters&amp;quot;&amp;apos;;
+        }
+      }</triggers>
+
+        <runTestsRequest>
+          <allTests>true</allTests>
+        </runTestsRequest>
+      </CompileAndTestRequest>
+    </compileAndTest>
+  </env:Body>
+</env:Envelope>

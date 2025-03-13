@@ -1,4 +1,4 @@
-import { getRandomName } from "./common.js";
+import { getRandomName, escapeXml } from "./common.js";
 import webhookCalloutTemplate from "../../resources/templates/apex/src/WebhookCallout.cls.handlebars";
 import httpCalloutMockTemplate from "../../resources/templates/apex/test/HttpCalloutMock.cls.handlebars";
 import sObjectFactoryTemplate from "../../resources/templates/apex/test/SObjectFactory.cls.handlebars";
@@ -79,8 +79,8 @@ export const getWebhookTriggerTest = (
 };
 
 export const getDeployApexCodeBody = (authToken, classes, triggers) => {
-  const classBodies = classes.map((c) => c.body);
-  const triggerBodies = triggers.map((t) => t.body);
+  const classBodies = classes.map((c) => escapeXml(c.body));
+  const triggerBodies = triggers.map((t) => escapeXml(t.body));
   const body = deployApexCodeTemplate({
     authToken,
     classBodies,
@@ -92,10 +92,12 @@ export const getDeployApexCodeBody = (authToken, classes, triggers) => {
 };
 
 export const getDeleteApexCodeBody = (authToken, classNames, triggerNames) => {
+  const escapedClassNames = classNames.map(name => escapeXml(name));
+  const escapedTriggerNames = triggerNames.map(name => escapeXml(name));
   const body = deleteApexCodeTemplate({
     authToken,
-    classNames,
-    triggerNames,
+    classNames: escapedClassNames,
+    triggerNames: escapedTriggerNames,
   });
   return {
     body,

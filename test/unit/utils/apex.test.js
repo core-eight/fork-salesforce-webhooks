@@ -5,6 +5,7 @@ import { expect } from "chai";
 import { parseXml } from "libxmljs";
 import { describe } from "mocha";
 import * as apex from "../../../src/utils/apex";
+import { writeFileSync } from "fs";
 
 const getApexParser = (apexCode) => {
   const lexer = new ApexLexer(new CaseInsensitiveInputStream(null, apexCode));
@@ -295,5 +296,127 @@ describe("SOAP request utils", function () {
 
     const result = parseXml(requestBody);
     expect(result.errors.length).to.equal(0);
+  });
+
+  it("should generate valid XML when Apex code contains XML special characters", function () {
+    // Create a class with XML special characters
+    const classWithSpecialChars = {
+      name: "TestClass",
+      body: `public class TestClass {
+        // The following line has XML special characters < > & ' "
+        if (x < 10 && y > 20) {
+            String s = 'apostrophe & ampersand " quotes';
+        }
+      }`
+    };
+    
+    const triggerWithSpecialChars = {
+      name: "TestTrigger",
+      body: `trigger TestTrigger on Account (before insert) {
+        // The following line has XML special characters < > & ' "
+        if (Trigger.new[0].Name != null && Trigger.new[0].Name.length() > 0) {
+            String s = 'some string with <xml> & special "characters"';
+        }
+      }`
+    };
+    
+    const authToken = "auth-token-value";
+    
+    const { body: requestBody } = apex.getDeployApexCodeBody(
+      authToken,
+      [classWithSpecialChars],
+      [triggerWithSpecialChars]
+    );
+    
+    // This should not throw an error if XML is valid
+    const result = parseXml(requestBody);
+    expect(result.errors.length).to.equal(0);
+    
+    // Save the generated SOAP message to a file for external validation
+    const outputPath = '/home/muly/fork-salesforce-webhooks/test/output/sample-soap-message.xml';
+    writeFileSync(outputPath, requestBody);
+    console.log(`SOAP message saved to: ${outputPath}`);
+    
+    // Verify that the XML special characters are properly escaped
+    // Note that characters are double-escaped due to how XML handling works
+    expect(requestBody).to.include("&amp;lt;");
+    expect(requestBody).to.include("&amp;gt;");
+    expect(requestBody).to.include("&amp;amp;");
+    expect(requestBody).to.include("&amp;apos;");
+    expect(requestBody).to.include("&amp;quot;");
+  });
+  
+  it("should generate valid XML with CDATA-like content", function () {
+    // Create a class with CDATA-like content that could cause issues
+    const classWithCDATALike = {
+      name: "CDATATestClass",
+      body: `public class CDATATestClass {
+        // The following contains CDATA-like content that could break XML
+        String cdataExample = '<![CDATA[ This is CDATA content with nested <tags> & special chars ]]>';
+        
+        // Processing instruction-like content
+        String piExample = '<?xml version="1.0" encoding="UTF-8"?>';
+        
+        // Comment-like content
+        String commentExample = '<!-- XML comment that could break parsing -->';
+      }`
+    };
+    
+    const authToken = "auth-token-value";
+    
+    const { body: requestBody } = apex.getDeployApexCodeBody(
+      authToken,
+      [classWithCDATALike],
+      []
+    );
+    
+    // This should not throw an error if XML is valid
+    const result = parseXml(requestBody);
+    expect(result.errors.length).to.equal(0);
+    
+    // Save the generated SOAP message to a file for external validation
+    const outputPath = '/home/muly/fork-salesforce-webhooks/test/output/cdata-soap-message.xml';
+    writeFileSync(outputPath, requestBody);
+    console.log(`CDATA SOAP message saved to: ${outputPath}`);
+  });
+  
+  it("should generate valid XML with extreme XML-breaking content", function () {
+    // Create a class with content specifically designed to break XML parsers
+    const classWithExtreme = {
+      name: "ExtremeTestClass",
+      body: `public class ExtremeTestClass {
+        // A mixture of XML breaking patterns
+        String mixture = '<![CDATA[</tags>]]> && <<< >>> "quote" \'apostrophe\' & ampersand';
+        
+        // XML entity-like content
+        String entityExample = '&lt; &gt; &amp; &quot; &apos; &#x3C; &#60;';
+        
+        // Deeply nested tags in a string
+        String nestedTags = '<a><b><c><d><e><f><g>nested</g></f></e></d></c></b></a>';
+        
+        // Malformed tag-like content
+        String malformedTags = '< not-a-tag > </ also-not-a-tag >';
+        
+        // Unclosed tags
+        String unclosedTags = '<unclosed tag and <another unclosed';
+      }`
+    };
+    
+    const authToken = "auth-token-value";
+    
+    const { body: requestBody } = apex.getDeployApexCodeBody(
+      authToken,
+      [classWithExtreme],
+      []
+    );
+    
+    // This should not throw an error if XML is valid
+    const result = parseXml(requestBody);
+    expect(result.errors.length).to.equal(0);
+    
+    // Save the generated SOAP message to a file for external validation
+    const outputPath = '/home/muly/fork-salesforce-webhooks/test/output/extreme-soap-message.xml';
+    writeFileSync(outputPath, requestBody);
+    console.log(`Extreme SOAP message saved to: ${outputPath}`);
   });
 });

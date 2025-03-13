@@ -1,0 +1,37 @@
+<env:Envelope
+  xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  <env:Header>
+    <urn:SessionHeader xmlns:urn="http://soap.sforce.com/2006/08/apex">
+      <urn:sessionId>auth-token-value</urn:sessionId>
+    </urn:SessionHeader>
+  </env:Header>
+  <env:Body>
+    <compileAndTest xmlns="http://soap.sforce.com/2006/08/apex">
+      <CompileAndTestRequest>
+          <classes>public class ExtremeTestClass {
+        // A mixture of XML breaking patterns
+        String mixture &#x3D; &amp;apos;&amp;lt;![CDATA[&amp;lt;/tags&amp;gt;]]&amp;gt; &amp;amp;&amp;amp; &amp;lt;&amp;lt;&amp;lt; &amp;gt;&amp;gt;&amp;gt; &amp;quot;quote&amp;quot; &amp;apos;apostrophe&amp;apos; &amp;amp; ampersand&amp;apos;;
+        
+        // XML entity-like content
+        String entityExample &#x3D; &amp;apos;&amp;amp;lt; &amp;amp;gt; &amp;amp;amp; &amp;amp;quot; &amp;amp;apos; &amp;amp;#x3C; &amp;amp;#60;&amp;apos;;
+        
+        // Deeply nested tags in a string
+        String nestedTags &#x3D; &amp;apos;&amp;lt;a&amp;gt;&amp;lt;b&amp;gt;&amp;lt;c&amp;gt;&amp;lt;d&amp;gt;&amp;lt;e&amp;gt;&amp;lt;f&amp;gt;&amp;lt;g&amp;gt;nested&amp;lt;/g&amp;gt;&amp;lt;/f&amp;gt;&amp;lt;/e&amp;gt;&amp;lt;/d&amp;gt;&amp;lt;/c&amp;gt;&amp;lt;/b&amp;gt;&amp;lt;/a&amp;gt;&amp;apos;;
+        
+        // Malformed tag-like content
+        String malformedTags &#x3D; &amp;apos;&amp;lt; not-a-tag &amp;gt; &amp;lt;/ also-not-a-tag &amp;gt;&amp;apos;;
+        
+        // Unclosed tags
+        String unclosedTags &#x3D; &amp;apos;&amp;lt;unclosed tag and &amp;lt;another unclosed&amp;apos;;
+      }</classes>
+
+
+        <runTestsRequest>
+          <allTests>true</allTests>
+        </runTestsRequest>
+      </CompileAndTestRequest>
+    </compileAndTest>
+  </env:Body>
+</env:Envelope>
