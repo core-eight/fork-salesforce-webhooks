@@ -216,7 +216,7 @@ export class SalesforceClient {
       result = await axios.post(this.soapApiUrl, body, requestConfig);
     } catch (error) {
       console.error(`
-        Could not deploy Apex code to Salesforce.
+        Could not deploy Apex code to Salesforce v2.
         - Error message: ${error}
         - Classes: ${JSON.stringify(classNames, null, 2)}
         - Triggers: ${JSON.stringify(triggerNames, null, 2)}
@@ -227,7 +227,7 @@ export class SalesforceClient {
     const { data } = result;
     if (!wasSuccessfulSoapRequest(data)) {
       const msg = `
-        Could not deploy Apex code to Salesforce
+        Could not deploy Apex code to Salesforce v2/2
         - Response from Salesforce: ${JSON.stringify(data, null, 2)}
         - Classes: ${JSON.stringify(classes, null, 2)}
         - Triggers: ${JSON.stringify(triggers, null, 2)}

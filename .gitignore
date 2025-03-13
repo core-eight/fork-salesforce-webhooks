@@ -8,3 +8,4 @@ node_modules
 .nyc_output
 coverage
 /.idea/AugmentWebviewStateStore.xml
+config.bat
