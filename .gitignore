@@ -7,3 +7,4 @@ node_modules
 # Coverage reports
 .nyc_output
 coverage
+/.idea/AugmentWebviewStateStore.xml

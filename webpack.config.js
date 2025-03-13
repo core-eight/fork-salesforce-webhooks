@@ -27,6 +27,9 @@ const baseConfig = {
       {
         test: /\.handlebars$/,
         loader: "handlebars-loader",
+        options: {
+          noEscape: true
+        }
       },
       {
         test: /\.js$/,

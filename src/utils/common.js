@@ -2,7 +2,7 @@ import { randomBytes } from "crypto";
 
 export const getRandomName = (rawName) => {
   const maxLength = 40;
-  const namePrefix = `cube9_${rawName}_`;
+  const namePrefix = `core8_${rawName}_`;
   const randomComponentLength = Math.floor(
     Math.max(0, maxLength - namePrefix.length) / 2,
   );
