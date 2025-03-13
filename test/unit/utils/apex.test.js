@@ -309,7 +309,7 @@ describe("SOAP request utils", function () {
         }
       }`
     };
-    
+
     const triggerWithSpecialChars = {
       name: "TestTrigger",
       body: `trigger TestTrigger on Account (before insert) {
@@ -319,24 +319,24 @@ describe("SOAP request utils", function () {
         }
       }`
     };
-    
+
     const authToken = "auth-token-value";
-    
+
     const { body: requestBody } = apex.getDeployApexCodeBody(
       authToken,
       [classWithSpecialChars],
       [triggerWithSpecialChars]
     );
-    
+
     // This should not throw an error if XML is valid
     const result = parseXml(requestBody);
     expect(result.errors.length).to.equal(0);
-    
+
     // Save the generated SOAP message to a file for external validation
-    const outputPath = '/home/muly/fork-salesforce-webhooks/test/output/sample-soap-message.xml';
+    const outputPath = './test/output/sample-soap-message.xml';
     writeFileSync(outputPath, requestBody);
     console.log(`SOAP message saved to: ${outputPath}`);
-    
+
     // Verify that the XML special characters are properly escaped
     // Note that characters are double-escaped due to how XML handling works
     expect(requestBody).to.include("&amp;lt;");
@@ -345,7 +345,7 @@ describe("SOAP request utils", function () {
     expect(requestBody).to.include("&amp;apos;");
     expect(requestBody).to.include("&amp;quot;");
   });
-  
+
   it("should generate valid XML with CDATA-like content", function () {
     // Create a class with CDATA-like content that could cause issues
     const classWithCDATALike = {
@@ -361,25 +361,25 @@ describe("SOAP request utils", function () {
         String commentExample = '<!-- XML comment that could break parsing -->';
       }`
     };
-    
+
     const authToken = "auth-token-value";
-    
+
     const { body: requestBody } = apex.getDeployApexCodeBody(
       authToken,
       [classWithCDATALike],
       []
     );
-    
+
     // This should not throw an error if XML is valid
     const result = parseXml(requestBody);
     expect(result.errors.length).to.equal(0);
-    
+
     // Save the generated SOAP message to a file for external validation
-    const outputPath = '/home/muly/fork-salesforce-webhooks/test/output/cdata-soap-message.xml';
+    const outputPath = './test/output/cdata-soap-message.xml';
     writeFileSync(outputPath, requestBody);
     console.log(`CDATA SOAP message saved to: ${outputPath}`);
   });
-  
+
   it("should generate valid XML with extreme XML-breaking content", function () {
     // Create a class with content specifically designed to break XML parsers
     const classWithExtreme = {
@@ -401,21 +401,21 @@ describe("SOAP request utils", function () {
         String unclosedTags = '<unclosed tag and <another unclosed';
       }`
     };
-    
+
     const authToken = "auth-token-value";
-    
+
     const { body: requestBody } = apex.getDeployApexCodeBody(
       authToken,
       [classWithExtreme],
       []
     );
-    
+
     // This should not throw an error if XML is valid
     const result = parseXml(requestBody);
     expect(result.errors.length).to.equal(0);
-    
+
     // Save the generated SOAP message to a file for external validation
-    const outputPath = '/home/muly/fork-salesforce-webhooks/test/output/extreme-soap-message.xml';
+    const outputPath = './test/output/extreme-soap-message.xml';
     writeFileSync(outputPath, requestBody);
     console.log(`Extreme SOAP message saved to: ${outputPath}`);
   });
