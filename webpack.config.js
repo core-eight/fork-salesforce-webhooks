@@ -28,7 +28,10 @@ const baseConfig = {
         test: /\.handlebars$/,
         loader: "handlebars-loader",
         options: {
-          noEscape: true
+          noEscape: true,
+          precompileOptions: {
+            noEscape: true
+          }
         }
       },
       {
