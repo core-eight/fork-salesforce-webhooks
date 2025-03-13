@@ -7,10 +7,14 @@ import deleteApexCodeTemplate from "../../resources/templates/soap/apex/DeleteAp
 
 export const getWebhookCallout = (secretToken) => {
   const webhookCalloutName = getRandomName("Callout");
-  const body = webhookCalloutTemplate({
+  let body = webhookCalloutTemplate({
     webhookCalloutName,
     secretToken,
   });
+  // Normalize line breaks if needed for consistent formatting in XML
+  if (body.includes('\n')) {
+    body = body.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+  }
   return {
     body,
     name: webhookCalloutName,
@@ -19,9 +23,11 @@ export const getWebhookCallout = (secretToken) => {
 
 export const getWebhookCalloutMock = () => {
   const webhookCalloutMockName = getRandomName("CalloutMock");
-  const body = httpCalloutMockTemplate({
+  let body = httpCalloutMockTemplate({
     webhookCalloutMockName,
   });
+  // Normalize line breaks in the template output to prevent "Illegal string literal" errors
+  body = body.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
   return {
     body,
     name: webhookCalloutMockName,
@@ -30,9 +36,10 @@ export const getWebhookCalloutMock = () => {
 
 export const getSObjectFactory = () => {
   const name = getRandomName("SObjectFactory");
-  const body = sObjectFactoryTemplate({
+  let body = sObjectFactoryTemplate({
     name,
   });
+  // Keep original formatting for this large template as it doesn't cause XML issues
   return {
     body,
     name,
@@ -46,11 +53,15 @@ export const getWebhookTrigger = (
 ) => {
   const { name: webhookCalloutName } = webhookCallout;
   const triggerName = getRandomName("Trigger");
-  const body = template({
+  let body = template({
     ...templateVars,
     triggerName,
     webhookCalloutName,
   });
+  // Normalize line breaks if needed for consistent formatting in XML
+  if (body.includes('\n')) {
+    body = body.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+  }
   return {
     body,
     name: triggerName,
@@ -66,12 +77,13 @@ export const getWebhookTriggerTest = (
   const { name: sObjectFactoryName } = sObjectFactory;
   const { name: webhookCalloutMockName } = webhookCalloutMock;
   const testClassName = getRandomName("Test");
-  const body = template({
+  let body = template({
     ...templateVars,
     testClassName,
     sObjectFactoryName,
     webhookCalloutMockName,
   });
+  // Test classes generally don't need normalization as they don't create illegal string literals
   return {
     body,
     name: testClassName,
